@@ -437,35 +437,29 @@ class NVDAHighlighter(providerBase.VisionEnhancementProvider):
 
 	def _run(self):
 		try:
-			if vision._isDebug():
-				log.debug("Starting NVDAHighlighter thread,, creating window")
+			log.warning("Starting NVDAHighlighter thread,, creating window")
 
 			window = self._window = self.customWindowClass(self)
 
-			if vision._isDebug():
-				log.debug("Creating timer")
+			log.warning("Creating timer")
 			timer = winUser.WinTimer(window.handle, 0, self._refreshInterval, None)
 
-			if vision._isDebug():
-				log.debug("Notifying main thread")
+			log.warning("Notifying main thread")
 			self._highlighterRunningEvent.set()  # notify main thread that initialisation was successful
 
 			msg = MSG()
 
-			if vision._isDebug():
-				log.debug("Starting highlighter thread message pump")
+			log.warning("Starting highlighter thread message pump")
 			# Python 3.8 note, Change this to use an Assignment expression to catch a return value of -1.
 			# See the remarks section of
 			# https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getmessage
 			while winUser.getMessage(byref(msg), None, 0, 0) > 0:
 				winUser.user32.TranslateMessage(byref(msg))
 				winUser.user32.DispatchMessageW(byref(msg))
-			if vision._isDebug():
-				log.debug("Quit message received on NVDAHighlighter thread, terminating timer")
+			log.warning("Quit message received on NVDAHighlighter thread, terminating timer")
 			timer.terminate()
 
-			if vision._isDebug():
-				log.debug("Destroying window")
+			log.warning("Destroying window")
 			window.destroy()
 		except Exception:
 			log.exception("Exception in NVDA Highlighter thread")
