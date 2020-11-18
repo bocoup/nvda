@@ -46,3 +46,7 @@
 [submodule "include/w3c-aria-practices"]
 	path = include/w3c-aria-practices
 	url = https://github.com/w3c/aria-practices
+[submodule "include/w3c-aria-at"]
+	path = include/w3c-aria-at
+	url = https://github.com/bocoup/aria-at
+	branch = automation-prototype
