@@ -27,6 +27,10 @@ ARIAExamplesDir = os.path.join(
 	_NvdaLib._locations.repoRoot, "include", "w3c-aria-practices", "examples"
 )
 
+ARIAATDir = os.path.join(
+	_NvdaLib._locations.repoRoot, "include", "w3c-aria-at", "tests"
+)
+
 
 def checkbox_labelled_by_inner_element():
 	_chrome.prepareChrome(
@@ -235,10 +239,10 @@ def test_ariaTreeGrid_browseMode():
 	"""
 	Ensure that ARIA treegrids are accessible as a standard table in browse mode.
 	"""
-	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html")
+	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html").replace('\\', '/')
 	_chrome.prepareChrome(
 		f"""
-			<iframe src="{testFile}"></iframe>
+			<iframe src="file:///{testFile}"></iframe>
 		"""
 	)
 	# Jump to the first heading in the iframe.
@@ -323,25 +327,32 @@ thus the html for this test would need to change,
 	)
 
 
+def parseAndRun(instructionsFilePath):
+	lastSpeech = ''
+	file = open(instructionsFilePath, 'r', encoding='utf-8')
+	for line in file:
+		(command, arg) = line.split(': ')
+		arg = arg.rstrip()
+		if command == 'nav':
+			# TODO(zcorpan): this should open the file directly, not use iframe.
+			navPath = os.path.join(os.path.dirname(os.path.dirname(instructionsFilePath)), arg).replace('\\', '/')
+			_chrome.prepareChrome(f"""
+				<iframe src="file:///{navPath}"></iframe>
+			""")
+		elif command == 'press':
+			lastSpeech = _chrome.getSpeechAfterKey(arg)
+		else:
+			_asserts.aria_at(command, lastSpeech, arg)
+
+
 def test_ariaCheckbox_browseMode():
 	"""
 	Navigate to an unchecked checkbox in reading mode.
 	"""
-	testFile = os.path.join(ARIAExamplesDir, "checkbox", "checkbox-1", "checkbox-1.html")
-	_chrome.prepareChrome(
-		f"""
-			<iframe src="{testFile}"></iframe>
-		"""
+	instructionsFile = os.path.join(
+		ARIAATDir,
+		"checkbox",
+		"automated",
+		"test-01-navigate-to-unchecked-checkbox-reading.nvda.txt"
 	)
-	# Jump to the first heading in the iframe.
-	actualSpeech = _chrome.getSpeechAfterKey("h")
-	_asserts.strings_match(
-		actualSpeech,
-		"frame  main landmark  Checkbox Example (Two State)  heading  level 1"
-	)
-	# Navigate to the checkbox.
-	actualSpeech = _chrome.getSpeechAfterKey("x")
-	_asserts.strings_match(
-		actualSpeech,
-		"Sandwich Condiments  grouping  list  with 4 items  Lettuce  check box  not checked"
-	)
+	parseAndRun(instructionsFile)
