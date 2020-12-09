@@ -7,6 +7,7 @@
 """
 
 import os
+import json
 from robot.libraries.BuiltIn import BuiltIn
 # imported methods start with underscore (_) so they don't get imported into robot files as keywords
 from SystemTestSpy import (
@@ -330,19 +331,19 @@ thus the html for this test would need to change,
 def parseAndRun(instructionsFilePath):
 	lastSpeech = ''
 	file = open(instructionsFilePath, 'r', encoding='utf-8')
-	for line in file:
-		(command, arg) = line.split(': ')
-		arg = arg.rstrip()
-		if command == 'nav':
-			# TODO(zcorpan): this should open the file directly, not use iframe.
-			navPath = os.path.join(os.path.dirname(os.path.dirname(instructionsFilePath)), arg).replace('\\', '/')
-			_chrome.prepareChrome(f"""
-				<iframe src="file:///{navPath}"></iframe>
-			""")
-		elif command == 'press':
-			lastSpeech = _chrome.getSpeechAfterKey(arg)
-		else:
-			_asserts.aria_at(command, lastSpeech, arg)
+	data = json.load(file)
+	for obj in data:
+		for command, args in obj.items():
+			if command == 'nav':
+				# TODO(zcorpan): this should open the file directly, not use iframe.
+				navPath = os.path.join(os.path.dirname(os.path.dirname(instructionsFilePath)), args[0]).replace('\\', '/')
+				_chrome.prepareChrome(f"""
+					<iframe src="file:///{navPath}"></iframe>
+				""")
+			elif command == 'press':
+				lastSpeech = _chrome.getSpeechAfterKey(args[0])
+			else:
+				_asserts.aria_at(command, lastSpeech, args[0])
 
 
 def test_ariaCheckbox_browseMode():
@@ -353,6 +354,6 @@ def test_ariaCheckbox_browseMode():
 		ARIAATDir,
 		"checkbox",
 		"automated",
-		"test-01-navigate-to-unchecked-checkbox-reading.nvda.txt"
+		"test-01-navigate-to-unchecked-checkbox-reading.nvda.json"
 	)
 	parseAndRun(instructionsFile)
