@@ -333,6 +333,7 @@ def parseAndRun(instructionsFilePath):
 	file = open(instructionsFilePath, 'r', encoding='utf-8')
 	data = json.load(file)
 	for obj in data:
+		_builtIn.log(obj)
 		for command, args in obj.items():
 			if command == 'nav':
 				# TODO(zcorpan): this should open the file directly, not use iframe.
@@ -341,7 +342,23 @@ def parseAndRun(instructionsFilePath):
 					<iframe src="file:///{navPath}"></iframe>
 				""")
 			elif command == 'press':
-				lastSpeech = _chrome.getSpeechAfterKey(args[0])
+				lastSpeech += ' ' + _chrome.getSpeechAfterKey(args[0])
+			elif command == 'press_until_contains':
+				speech = ''
+				while args[1] not in speech:
+					speech = _chrome.getSpeechAfterKey(args[0])
+					lastSpeech += ' ' + speech
+			elif command == 'press_until_role':
+				# TODO(zcorpan): put the mappings in a json file
+				expectedRole = {
+					'checkbox': 'check box',
+				}[args[1]]
+				speech = ''
+				while expectedRole not in speech:
+					speech = _chrome.getSpeechAfterKey(args[0])
+					lastSpeech += ' ' + speech
+			elif command == 'clear_output':
+				lastSpeech = ''
 			else:
 				_asserts.aria_at(command, lastSpeech, args[0])
 
