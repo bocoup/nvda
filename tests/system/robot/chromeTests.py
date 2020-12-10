@@ -18,6 +18,7 @@ from SystemTestSpy import (
 from ChromeLib import ChromeLib as _ChromeLib
 from AssertsLib import AssertsLib as _AssertsLib
 import NvdaLib as _NvdaLib
+from NvdaSpeechMappings import NvdaSpeechMappings as _NvdaSpeechMappings
 
 _builtIn: BuiltIn = BuiltIn()
 _chrome: _ChromeLib = _getLib("ChromeLib")
@@ -349,10 +350,7 @@ def parseAndRun(instructionsFilePath):
 					speech = _chrome.getSpeechAfterKey(args[0])
 					lastSpeech += ' ' + speech
 			elif command == 'press_until_role':
-				# TODO(zcorpan): put the mappings in a json file
-				expectedRole = {
-					'checkbox': 'check box',
-				}[args[1]]
+				expectedRole = _NvdaSpeechMappings.role(args[1])
 				speech = ''
 				while expectedRole not in speech:
 					speech = _chrome.getSpeechAfterKey(args[0])

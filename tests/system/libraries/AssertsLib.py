@@ -5,6 +5,7 @@
 
 """This module provides custom asserts for system tests.
 """
+from NvdaSpeechMappings import NvdaSpeechMappings
 from robot.libraries.BuiltIn import BuiltIn
 builtIn: BuiltIn = BuiltIn()
 
@@ -52,9 +53,7 @@ class AssertsLib:
 				)
 			elif command == 'assert_role':
 				# Normalize ARIA role to NVDA's spoken output for the role.
-				expected = {
-					'checkbox': 'check box',
-				}[expected]
+				expected = NvdaSpeechMappings.role(expected)
 				builtIn.should_contain_x_times(
 					actual,
 					expected,
@@ -62,11 +61,19 @@ class AssertsLib:
 					msg=msg
 				)
 			elif command == 'assert_checked':
-				actualChecked = 'checked' in actual and 'not checked' not in actual
-				expectedChecked = expected == 'true'
-				builtIn.should_be_equal(
-					actualChecked,
-					expectedChecked,
+				possibleChecked = NvdaSpeechMappings.state('aria-checked')
+				actualCheckedTrue = possibleChecked['true'] in actual
+				actualCheckedMixed = possibleChecked['mixed'] in actual
+				actualCheckedFalse = possibleChecked['false'] in actual
+				result = False
+				if expected == 'true':
+					result = actualCheckedTrue and not actualCheckedMixed and not actualCheckedFalse
+				elif expected == 'mixed':
+					result = actualCheckedMixed and not actualCheckedFalse
+				else:
+					result = actualCheckedFalse and not actualCheckedMixed
+				builtIn.should_be_true(
+					result,
 					msg=msg
 				)
 			elif command == 'assert_equals':
