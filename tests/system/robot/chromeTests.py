@@ -348,12 +348,14 @@ def parseAndRun(instructionsFilePath):
 				speech = ''
 				while args[1] not in speech:
 					speech = _chrome.getSpeechAfterKey(args[0])
+					_asserts.not_doc_boundary(command, speech, args)
 					lastSpeech += ' ' + speech
 			elif command == 'press_until_role':
 				expectedRole = _NvdaSpeechMappings.role(args[1])
 				speech = ''
 				while expectedRole not in speech:
 					speech = _chrome.getSpeechAfterKey(args[0])
+					_asserts.not_doc_boundary(command, speech, args)
 					lastSpeech += ' ' + speech
 			elif command == 'clear_output':
 				lastSpeech = ''

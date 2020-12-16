@@ -32,6 +32,25 @@ class AssertsLib:
 			raise
 
 	@staticmethod
+	def not_doc_boundary(command, actual, args, ignore_case=False):
+		try:
+			for unexpected in ('no previous ', 'no next '):
+				builtIn.should_not_contain(
+					actual,
+					unexpected,
+					msg='{}: {}\nUnexpected document boudary'.format(command, ', '.join(args)),
+					ignore_case=ignore_case
+				)
+		except AssertionError:
+			builtIn.log(
+				"Actual (ignore_case={}):\n{}".format(
+					ignore_case,
+					repr(actual)
+				)
+			)
+			raise
+
+	@staticmethod
 	def aria_at(command, actual, args, ignore_case=False):
 		try:
 			expected = args[0]
@@ -81,7 +100,7 @@ class AssertsLib:
 					msg = 'Unknown state or property in assert_state_or_property: {}'.format(command)
 				builtIn.should_be_true(
 					result,
-					msg
+					msg=msg
 				)
 			elif command == 'assert_equals':
 				builtIn.should_be_equal_as_strings(
