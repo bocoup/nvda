@@ -358,7 +358,7 @@ def parseAndRun(instructionsFilePath):
 			elif command == 'clear_output':
 				lastSpeech = ''
 			else:
-				_asserts.aria_at(command, lastSpeech, args[0])
+				_asserts.aria_at(command, lastSpeech, args)
 
 
 def test_ariaCheckbox_browseMode():

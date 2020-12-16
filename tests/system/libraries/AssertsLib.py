@@ -32,8 +32,9 @@ class AssertsLib:
 			raise
 
 	@staticmethod
-	def aria_at(command, actual, expected, ignore_case=False):
+	def aria_at(command, actual, args, ignore_case=False):
 		try:
+			expected = args[0]
 			# Normalize whitespace in actual.
 			actual = " ".join(actual.strip().split())
 			msg = '{}: {}\nActual output: {}'.format(command, expected, actual)
@@ -60,21 +61,27 @@ class AssertsLib:
 					1,
 					msg=msg
 				)
-			elif command == 'assert_checked':
-				possibleChecked = NvdaSpeechMappings.state('aria-checked')
-				actualCheckedTrue = possibleChecked['true'] in actual
-				actualCheckedMixed = possibleChecked['mixed'] in actual
-				actualCheckedFalse = possibleChecked['false'] in actual
-				result = False
-				if expected == 'true':
-					result = actualCheckedTrue and not actualCheckedMixed and not actualCheckedFalse
-				elif expected == 'mixed':
-					result = actualCheckedMixed and not actualCheckedFalse
+			elif command == 'assert_state_or_property':
+				state_or_proprety = args[0]
+				expected = args[1]
+				if state_or_proprety == 'aria-checked':
+					possibleChecked = NvdaSpeechMappings.state('aria-checked')
+					actualCheckedTrue = possibleChecked['true'] in actual
+					actualCheckedMixed = possibleChecked['mixed'] in actual
+					actualCheckedFalse = possibleChecked['false'] in actual
+					result = False
+					if expected == 'true':
+						result = actualCheckedTrue and not actualCheckedMixed and not actualCheckedFalse
+					elif expected == 'mixed':
+						result = actualCheckedMixed and not actualCheckedFalse
+					else:
+						result = actualCheckedFalse and not actualCheckedMixed
 				else:
-					result = actualCheckedFalse and not actualCheckedMixed
+					result = False
+					msg = 'Unknown state or property in assert_state_or_property: {}'.format(command)
 				builtIn.should_be_true(
 					result,
-					msg=msg
+					msg
 				)
 			elif command == 'assert_equals':
 				builtIn.should_be_equal_as_strings(
