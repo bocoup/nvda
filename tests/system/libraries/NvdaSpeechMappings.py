@@ -7,6 +7,7 @@
 for ARIA-AT tests.
 """
 
+
 class NvdaSpeechMappings:
     @staticmethod
     def role(role):
