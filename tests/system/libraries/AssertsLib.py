@@ -77,17 +77,17 @@ class AssertsLib:
 				state_or_property = args[0]
 				expected = args[1]
 				if state_or_property == 'aria-checked':
-					possibleChecked = NvdaSpeechMappings.state('aria-checked')
-					actualCheckedTrue = possibleChecked['true'] in actual
-					actualCheckedMixed = possibleChecked['mixed'] in actual
-					actualCheckedFalse = possibleChecked['false'] in actual
+					possible_checked = NvdaSpeechMappings.state('aria-checked')
+					actual_checked_true = possible_checked['true'] in actual
+					actual_checked_mixed = possible_checked['mixed'] in actual
+					actual_checked_false = possible_checked['false'] in actual
 					result = False
 					if expected == 'true':
-						result = actualCheckedTrue and not actualCheckedMixed and not actualCheckedFalse
+						result = actual_checked_true and not actual_checked_mixed and not actual_checked_false
 					elif expected == 'mixed':
-						result = actualCheckedMixed and not actualCheckedFalse
+						result = actual_checked_mixed and not actual_checked_false
 					else:
-						result = actualCheckedFalse and not actualCheckedMixed
+						result = actual_checked_false and not actual_checked_mixed
 				else:
 					result = False
 					msg = 'Unknown state or property in assert_state_or_property: {}'.format(command)

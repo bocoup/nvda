@@ -241,7 +241,8 @@ def test_ariaTreeGrid_browseMode():
 	"""
 	Ensure that ARIA treegrids are accessible as a standard table in browse mode.
 	"""
-	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html").replace('\\', '/')  # Backslash is invalid in a URL
+	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html")
+	testFile = testFile.replace('\\', '/')  # Backslash is invalid in a URL
 	_chrome.prepareChrome(
 		f"""
 			<iframe src="file:///{testFile}"></iframe>
@@ -329,48 +330,54 @@ thus the html for this test would need to change,
 	)
 
 
-def parseAndRun(instructionsFilePath):
-	lastSpeech = ''
-	file = open(instructionsFilePath, 'r', encoding='utf-8')
+def parse_and_run(instructions_file_path):
+	last_speech = ''
+	file = open(instructions_file_path, 'r', encoding='utf-8')
 	data = json.load(file)
 	for obj in data:
 		_builtIn.log(obj)
 		for command, args in obj.items():
 			if command == 'nav':
 				# TODO(zcorpan): this should open the file directly, not use iframe.
-				navPath = os.path.join(ARIAATDir, args[0]).replace('\\', '/')  # Backslash is invalid in a URL
+				nav_path = os.path.join(ARIAATDir, args[0])
+				nav_path = nav_path.replace('\\', '/')  # Backslash is invalid in a URL
 				_chrome.prepareChrome(f"""
-					<iframe src="file:///{navPath}"></iframe>
+					<iframe src="file:///{nav_path}"></iframe>
 				""")
 			elif command == 'press':
-				lastSpeech += ' ' + _chrome.getSpeechAfterKey(args[0])
+				keys = args[0]
+				last_speech += ' ' + _chrome.getSpeechAfterKey(keys)
 			elif command == 'press_until_contains':
 				speech = ''
-				while args[1] not in speech:
-					speech = _chrome.getSpeechAfterKey(args[0])
+				key_command = args[0]
+				expectedSpeech = args[1]
+				while expectedSpeech not in speech:
+					speech = _chrome.getSpeechAfterKey(key_command)
 					_asserts.not_doc_boundary(command, speech, args)
-					lastSpeech += ' ' + speech
+					last_speech += ' ' + speech
 			elif command == 'press_until_role':
-				expectedRole = _NvdaSpeechMappings.role(args[1])
+				key_command = args[0]
+				expected_role = args[1]
+				expected_role_speech = _NvdaSpeechMappings.role(expected_role)
 				speech = ''
-				while expectedRole not in speech:
-					speech = _chrome.getSpeechAfterKey(args[0])
+				while expected_role_speech not in speech:
+					speech = _chrome.getSpeechAfterKey(key_command)
 					_asserts.not_doc_boundary(command, speech, args)
-					lastSpeech += ' ' + speech
+					last_speech += ' ' + speech
 			elif command == 'clear_output':
-				lastSpeech = ''
+				last_speech = ''
 			else:
-				_asserts.aria_at(command, lastSpeech, args)
+				_asserts.aria_at(command, last_speech, args)
 
 
 def test_ariaCheckbox_browseMode():
 	"""
 	Navigate to an unchecked checkbox in reading mode.
 	"""
-	instructionsFile = os.path.join(
+	instructions_file_path = os.path.join(
 		ARIAATDir,
 		"tests",
 		"checkbox",
 		"test-01-navigate-to-unchecked-checkbox-reading.nvda.json"
 	)
-	parseAndRun(instructionsFile)
+	parse_and_run(instructions_file_path)
