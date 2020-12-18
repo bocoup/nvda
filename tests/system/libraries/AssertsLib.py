@@ -58,12 +58,22 @@ class AssertsLib:
 			actual = " ".join(actual.strip().split())
 			msg = '{}: {}\nActual output: {}'.format(command, expected, actual)
 			if command == 'assert_contains':
-				builtIn.should_contain_x_times(
-					actual,
-					expected,
-					1,
-					msg=msg
-				)
+				x = None
+				if len(args) > 1:
+					x = args[1]
+				if x is None:
+					builtIn.should_contain(
+						actual,
+						expected,
+						msg=msg
+					)
+				else:
+					builtIn.should_contain_x_times(
+						actual,
+						expected,
+						x,
+						msg=msg
+					)
 			elif command == 'assert_role':
 				# Normalize ARIA role to NVDA's spoken output for the role.
 				expected = NvdaSpeechMappings.role(expected)
