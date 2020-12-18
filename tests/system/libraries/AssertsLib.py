@@ -64,13 +64,6 @@ class AssertsLib:
 					1,
 					msg=msg
 				)
-			elif command == 'assert_accname':
-				builtIn.should_contain_x_times(
-					actual,
-					expected,
-					1,
-					msg=msg
-				)
 			elif command == 'assert_role':
 				# Normalize ARIA role to NVDA's spoken output for the role.
 				expected = NvdaSpeechMappings.role(expected)
