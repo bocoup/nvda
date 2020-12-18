@@ -30,7 +30,7 @@ ARIAExamplesDir = os.path.join(
 )
 
 ARIAATDir = os.path.join(
-	_NvdaLib._locations.repoRoot, "include", "w3c-aria-at", "tests"
+	_NvdaLib._locations.repoRoot, "include", "w3c-aria-at"
 )
 
 
@@ -241,7 +241,7 @@ def test_ariaTreeGrid_browseMode():
 	"""
 	Ensure that ARIA treegrids are accessible as a standard table in browse mode.
 	"""
-	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html").replace('\\', '/')
+	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html").replace('\\', '/')  # Backslash is invalid in a URL
 	_chrome.prepareChrome(
 		f"""
 			<iframe src="file:///{testFile}"></iframe>
@@ -338,7 +338,7 @@ def parseAndRun(instructionsFilePath):
 		for command, args in obj.items():
 			if command == 'nav':
 				# TODO(zcorpan): this should open the file directly, not use iframe.
-				navPath = os.path.join(os.path.dirname(os.path.dirname(instructionsFilePath)), args[0]).replace('\\', '/')
+				navPath = os.path.join(ARIAATDir, args[0]).replace('\\', '/')  # Backslash is invalid in a URL
 				_chrome.prepareChrome(f"""
 					<iframe src="file:///{navPath}"></iframe>
 				""")
@@ -369,8 +369,8 @@ def test_ariaCheckbox_browseMode():
 	"""
 	instructionsFile = os.path.join(
 		ARIAATDir,
+		"tests",
 		"checkbox",
-		"automated",
 		"test-01-navigate-to-unchecked-checkbox-reading.nvda.json"
 	)
 	parseAndRun(instructionsFile)
