@@ -81,9 +81,9 @@ class AssertsLib:
 					msg=msg
 				)
 			elif command == 'assert_state_or_property':
-				state_or_proprety = args[0]
+				state_or_property = args[0]
 				expected = args[1]
-				if state_or_proprety == 'aria-checked':
+				if state_or_property == 'aria-checked':
 					possibleChecked = NvdaSpeechMappings.state('aria-checked')
 					actualCheckedTrue = possibleChecked['true'] in actual
 					actualCheckedMixed = possibleChecked['mixed'] in actual
