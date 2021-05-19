@@ -7,6 +7,7 @@
 """
 
 import os
+import json
 from robot.libraries.BuiltIn import BuiltIn
 # imported methods start with underscore (_) so they don't get imported into robot files as keywords
 from SystemTestSpy import (
@@ -17,6 +18,7 @@ from SystemTestSpy import (
 from ChromeLib import ChromeLib as _ChromeLib
 from AssertsLib import AssertsLib as _AssertsLib
 import NvdaLib as _NvdaLib
+from NvdaSpeechMappings import NvdaSpeechMappings as _NvdaSpeechMappings
 
 _builtIn: BuiltIn = BuiltIn()
 _chrome: _ChromeLib = _getLib("ChromeLib")
@@ -25,6 +27,10 @@ _asserts: _AssertsLib = _getLib("AssertsLib")
 
 ARIAExamplesDir = os.path.join(
 	_NvdaLib._locations.repoRoot, "include", "w3c-aria-practices", "examples"
+)
+
+ARIAATDir = os.path.join(
+	_NvdaLib._locations.repoRoot, "include", "w3c-aria-at"
 )
 
 
@@ -285,9 +291,10 @@ def test_ariaTreeGrid_browseMode():
 	Ensure that ARIA treegrids are accessible as a standard table in browse mode.
 	"""
 	testFile = os.path.join(ARIAExamplesDir, "treegrid", "treegrid-1.html")
+	testFile = testFile.replace('\\', '/')  # Backslash is invalid in a URL
 	_chrome.prepareChrome(
 		f"""
-			<iframe src="{testFile}"></iframe>
+			<iframe src="file:///{testFile}"></iframe>
 		"""
 	)
 	# Jump to the first heading in the iframe.
@@ -372,28 +379,57 @@ thus the html for this test would need to change,
 	)
 
 
+def parse_and_run(instructions_file_path):
+	last_speech = ''
+	file = open(instructions_file_path, 'r', encoding='utf-8')
+	data = json.load(file)
+	for obj in data:
+		_builtIn.log(obj)
+		for command, args in obj.items():
+			if command == 'nav':
+				# TODO(zcorpan): this should open the file directly, not use iframe.
+				nav_path = os.path.join(ARIAATDir, args[0])
+				nav_path = nav_path.replace('\\', '/')  # Backslash is invalid in a URL
+				_chrome.prepareChrome(f"""
+					<iframe src="file:///{nav_path}"></iframe>
+				""")
+			elif command == 'press':
+				keys = args[0]
+				last_speech += ' ' + _chrome.getSpeechAfterKey(keys)
+			elif command == 'press_until_contains':
+				speech = ''
+				key_command = args[0]
+				expectedSpeech = args[1]
+				while expectedSpeech not in speech:
+					speech = _chrome.getSpeechAfterKey(key_command)
+					_asserts.not_doc_boundary(command, speech, args)
+					last_speech += ' ' + speech
+			elif command == 'press_until_role':
+				key_command = args[0]
+				expected_role = args[1]
+				expected_role_speech = _NvdaSpeechMappings.role(expected_role)
+				speech = ''
+				while expected_role_speech not in speech:
+					speech = _chrome.getSpeechAfterKey(key_command)
+					_asserts.not_doc_boundary(command, speech, args)
+					last_speech += ' ' + speech
+			elif command == 'clear_output':
+				last_speech = ''
+			else:
+				_asserts.aria_at(command, last_speech, args)
+
+
 def test_ariaCheckbox_browseMode():
 	"""
 	Navigate to an unchecked checkbox in reading mode.
 	"""
-	testFile = os.path.join(ARIAExamplesDir, "checkbox", "checkbox-1", "checkbox-1.html")
-	_chrome.prepareChrome(
-		f"""
-			<iframe src="{testFile}"></iframe>
-		"""
+	instructions_file_path = os.path.join(
+		ARIAATDir,
+		"tests",
+		"checkbox",
+		"test-01-navigate-to-unchecked-checkbox-reading.nvda.json"
 	)
-	# Jump to the first heading in the iframe.
-	actualSpeech = _chrome.getSpeechAfterKey("h")
-	_asserts.strings_match(
-		actualSpeech,
-		"frame  main landmark  Checkbox Example (Two State)  heading  level 1"
-	)
-	# Navigate to the checkbox.
-	actualSpeech = _chrome.getSpeechAfterKey("x")
-	_asserts.strings_match(
-		actualSpeech,
-		"Sandwich Condiments  grouping  list  with 4 items  Lettuce  check box  not checked"
-	)
+	parse_and_run(instructions_file_path)
 
 
 def test_i12147():
